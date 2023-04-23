@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="StatsView">
+        <!-- Для данного аттрибута указывается формат - измерение/ссылка -->
+        <attr name="textSize" format="dimension|reference"/>
+        <attr name="lineWidth" format="dimension|reference"/>
+        <!-- А для этого аттрибута - цвет/ссылка -->
+        <attr name="firstColor" format="color|reference"/>
+        <attr name="secondColor" format="color|reference"/>
+        <attr name="thirdColor" format="color|reference"/>
+        <attr name="fourthColor" format="color|reference"/>
+        <attr name="textColor" format="color|reference"/>
+    </declare-styleable>
+</resources>
