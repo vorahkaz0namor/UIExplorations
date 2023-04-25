@@ -8,8 +8,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="app_main_color">#9F9292</color>
-    <color name="first_color_stats_view">#3F51B5</color>
+    <color name="first_color_stats_view">#243593</color>
     <color name="second_color_stats_view">#BA6F00</color>
     <color name="third_color_stats_view">#37703A</color>
-    <color name="fourth_color_stats_view">#8B361B</color>
+    <color name="fourth_color_stats_view">#FF6836</color>
 </resources>
