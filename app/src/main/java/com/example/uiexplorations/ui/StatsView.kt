@@ -10,11 +10,10 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import androidx.core.content.withStyledAttributes
 import com.example.uiexplorations.R
+import com.example.uiexplorations.dto.Arc
 import com.example.uiexplorations.dto.Percent
 import com.example.uiexplorations.util.AndroidUtils
-import kotlin.math.cos
 import kotlin.math.min
-import kotlin.math.sin
 import kotlin.random.Random
 
 class StatsView @JvmOverloads constructor(
@@ -165,10 +164,27 @@ private class CircularProgress @JvmOverloads constructor(
     private var colors = emptyList<Int>()
     private val emptyColor = 0xECECECEC.toInt()
     private var arcPaint: Paint
+    private var arcs = emptyList<Arc>()
     var progress = 0F
+        set(value) {
+            field = value
+            computeArcs()
+        }
     var angleShift = 0F
+        set(value) {
+            field = value
+            computeArcs()
+        }
     var listData: List<Float> = emptyList()
+        set(value) {
+            field = value
+            computeArcs()
+        }
     var percent: Percent = Percent(0)
+        set(value) {
+            field = value
+            computeArcs()
+        }
 
     init {
         context.withStyledAttributes(attributeSet, R.styleable.StatsView) {
@@ -194,6 +210,42 @@ private class CircularProgress @JvmOverloads constructor(
             }
     }
 
+    private fun computeArcs() {
+        arcs = emptyList()
+        val data = when {
+            listData.isNotEmpty() -> listData
+            percent.percent != 0 -> percent.data()
+            else -> return
+        }
+        // Стартовый угол положения кисти
+        var startAngle = -90F + angleShift
+        // Сектор, выделяемый для одного элемента
+        val sector = 360F / data.size
+        data.forEachIndexed { index, datum ->
+            // Угол поворота (начертания дуги)
+            val sweepAngle = (
+                    if (listData.isNotEmpty())
+                        progress
+                    else
+                        1F
+                    ) * sector * datum / data.max()
+            // Для каждого элемента задается свой цвет.
+            // При этом, если отсутствует цвет для элемента
+            // из списка data, то цвет сгенерируется
+            // по функции randomColor()
+            val color = colors.getOrElse(index) { randomColor() }
+            arcs = arcs
+                .plus(Arc(
+                    startAngle = startAngle,
+                    sweepAngle = sweepAngle,
+                    color = color
+                ))
+            // Добавим отступ к стартовому углу
+            startAngle += sector
+        }
+        invalidate()
+    }
+
     fun fromSizeChanged(w: Int, h: Int) {
         // Добавим отступ от краев окружности, чтобы она смогла уместиться
         // во время отрисовки
@@ -217,51 +269,29 @@ private class CircularProgress @JvmOverloads constructor(
                 color = emptyColor
             }
         )
-        val data = when {
-            listData.isNotEmpty() -> listData
-            percent.percent != 0 -> percent.data()
-            else -> return
-        }
-        // Стартовый угол положения кисти
-        var startAngle = -90F + angleShift
-        // Сектор, выделяемый для одного элемента
-        val sector = 360F / data.size
-        var firstColor = randomColor()
-        data.forEachIndexed { index, datum ->
-            // Угол поворота (начертания дуги)
-            val angle = (
-                    if (listData.isNotEmpty())
-                        progress
-                    else
-                        1F
-                    ) * sector * datum / data.max()
-            // Для каждого элемента задается свой цвет.
-            // При этом, если отсутствует цвет для элемента
-            // из списка data, то цвет сгенерируется
-            // по функции randomColor()
-            arcPaint.color = colors
-                .getOrElse(index) { randomColor() }
-                .also {
-                    if (index == data.withIndex().first().index)
-                        firstColor = it
+        arcs.apply {
+            if (isNotEmpty()) {
+                forEach { arc ->
+                    canvas.drawArc(
+                        /* oval = */ oval,
+                        /* startAngle = */ arc.startAngle,
+                        /* sweepAngle = */ arc.sweepAngle,
+                        /* useCenter = */ false,
+                        /* paint = */ arcPaint.apply {
+                            color = arc.color
+                        }
+                    )
                 }
-            canvas.drawArc(
-                /* oval = */ oval,
-                /* startAngle = */ startAngle,
-                /* sweepAngle = */ angle,
-                /* useCenter = */ false,
-                /* paint = */ arcPaint)
-            // Добавим отступ к стартовому углу
-            startAngle += sector
-        }
-        canvas.drawArc(
-            oval,
-            startAngle,
-            0.1F,
-            false,
-            arcPaint.apply {
-                color = firstColor
+                canvas.drawArc(
+                    oval,
+                    first().startAngle,
+                    0.1F,
+                    false,
+                    arcPaint.apply {
+                        color = first().color
+                    }
+                )
             }
-        )
+        }
     }
 }
