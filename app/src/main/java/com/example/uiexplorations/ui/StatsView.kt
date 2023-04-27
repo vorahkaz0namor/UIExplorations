@@ -63,7 +63,7 @@ class StatsView @JvmOverloads constructor(
     private val sum: Float
         get() =
             if (listData.isNotEmpty())
-                progress *
+                (progress / listData.size) *
                         listData.map {
                             (it / listData.max()) * 100 / listData.size
                         }
@@ -107,16 +107,8 @@ class StatsView @JvmOverloads constructor(
     }
 
     private fun update() {
-        animators.let {
-            it.map { anim ->
-                anim.removeAllListeners()
-                anim.cancel()
-            }
-            animators = emptyList()
-        }
-        progress = 0F
         animators = animators.plus(
-            ObjectAnimator.ofFloat(0F, 1F).apply {
+            ObjectAnimator.ofFloat(0F, listData.size.toFloat()).apply {
                 addUpdateListener { anim ->
                     (anim.animatedValue as Float).let {
                         progress = it
@@ -124,8 +116,6 @@ class StatsView @JvmOverloads constructor(
                     }
                     invalidate()
                 }
-                duration = 3000
-                interpolator = LinearInterpolator()
             }
         )
             .plus(
@@ -134,12 +124,21 @@ class StatsView @JvmOverloads constructor(
                         circularProgress.angleShift = it.animatedValue as Float
                         invalidate()
                     }
-                    duration = 3000
-                    interpolator = LinearInterpolator()
                 }
             )
         AnimatorSet().apply {
             animators.map {
+                addListener(
+                    object : DefaultAnimatorListener() {
+                        override fun onAnimationCancel(p0: Animator) {
+                            it.removeAllListeners()
+                            it.cancel()
+                            animators = emptyList()
+                        }
+                    }
+                )
+                duration = 3000
+                interpolator = LinearInterpolator()
                 play(it)
             }
         }
@@ -225,7 +224,12 @@ private class CircularProgress @JvmOverloads constructor(
             // Угол поворота (начертания дуги)
             val sweepAngle = (
                     if (listData.isNotEmpty())
-                        progress
+                        when {
+                            progress >= index &&
+                            progress < 1 + index -> progress - index
+                            progress >= 1 + index -> 1F
+                            else -> 0F
+                        }
                     else
                         1F
                     ) * sector * datum / data.max()
@@ -261,6 +265,16 @@ private class CircularProgress @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas) {
+        drawBackgroundCircle(canvas)
+        arcs.apply {
+            if (isNotEmpty()) {
+                forEach { drawArcs(canvas = canvas, arc = it) }
+                drawStartPoint(canvas)
+            }
+        }
+    }
+
+    private fun drawBackgroundCircle(canvas: Canvas) {
         canvas.drawCircle(
             center.x,
             center.y,
@@ -269,29 +283,29 @@ private class CircularProgress @JvmOverloads constructor(
                 color = emptyColor
             }
         )
-        arcs.apply {
-            if (isNotEmpty()) {
-                forEach { arc ->
-                    canvas.drawArc(
-                        /* oval = */ oval,
-                        /* startAngle = */ arc.startAngle,
-                        /* sweepAngle = */ arc.sweepAngle,
-                        /* useCenter = */ false,
-                        /* paint = */ arcPaint.apply {
-                            color = arc.color
-                        }
-                    )
-                }
-                canvas.drawArc(
-                    oval,
-                    first().startAngle,
-                    0.1F,
-                    false,
-                    arcPaint.apply {
-                        color = first().color
-                    }
-                )
+    }
+
+    private fun drawArcs(canvas: Canvas, arc: Arc) {
+        canvas.drawArc(
+            /* oval = */ oval,
+            /* startAngle = */ arc.startAngle,
+            /* sweepAngle = */ arc.sweepAngle,
+            /* useCenter = */ false,
+            /* paint = */ arcPaint.apply {
+                color = arc.color
             }
-        }
+        )
+    }
+
+    private fun drawStartPoint(canvas: Canvas) {
+        canvas.drawArc(
+            oval,
+            arcs.first().startAngle,
+            0.1F,
+            false,
+            arcPaint.apply {
+                color = arcs.first().color
+            }
+        )
     }
 }
