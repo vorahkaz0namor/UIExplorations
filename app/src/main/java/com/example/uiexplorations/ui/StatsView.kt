@@ -127,20 +127,20 @@ class StatsView @JvmOverloads constructor(
                 }
             )
         AnimatorSet().apply {
-            animators.map {
-                addListener(
-                    object : DefaultAnimatorListener() {
-                        override fun onAnimationCancel(p0: Animator) {
+            addListener(
+                object : DefaultAnimatorListener() {
+                    override fun onAnimationCancel(p0: Animator) {
+                        animators.map {
                             it.removeAllListeners()
                             it.cancel()
-                            animators = emptyList()
                         }
+                        animators = emptyList()
                     }
-                )
-                duration = 3000
-                interpolator = LinearInterpolator()
-                play(it)
-            }
+                }
+            )
+            duration = 3000
+            interpolator = LinearInterpolator()
+            animators.map(::play)
         }
             .start()
     }
