@@ -2,7 +2,6 @@ package com.example.uiexplorations.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Toast
@@ -19,35 +18,17 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         val letsSecondButton = findViewById<MaterialButton>(R.id.secondActionButton)
         val firstStatsView = findViewById<StatsView>(R.id.firstRadialFiller)
         val secondStatsView = findViewById<StatsView>(R.id.secondRadialFiller)
-        firstStatsView.percent = Percent(79)
+        val data = listOf(
+            200F,
+            300F,
+            400F,
+            500F
+        )
         letsFirstButton.setOnClickListener {
-            // Для доступа к анимации из кода существует метод startAnimation()
-            firstStatsView.startAnimation(
-                AnimationUtils.loadAnimation(this, R.anim.animation)
-                    .apply {
-                        // Для отслеживания процесса анимации существует метод
-                        // setAnimationListener()
-                        setAnimationListener(object : Animation.AnimationListener {
-                            override fun onAnimationStart(p0: Animation?) {
-                                showToast(R.string.animation_start)
-                            }
-                            override fun onAnimationEnd(p0: Animation?) {
-                                showToast(R.string.animation_stop)
-                            }
-                            override fun onAnimationRepeat(p0: Animation?) {
-                                showToast(R.string.animation_repeat)
-                            }
-                        })
-                    }
-            )
+            firstStatsView.listData = data
         }
         letsSecondButton.setOnClickListener {
-            secondStatsView.listData = listOf(
-                200F,
-                300F,
-                400F,
-                500F
-            )
+            secondStatsView.listData = data
         }
     }
 
@@ -57,5 +38,28 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             getString(stringResId),
             Toast.LENGTH_SHORT
         ).show()
+    }
+
+    private fun lectureExample(view: StatsView) {
+        view.percent = Percent(79)
+        // Для доступа к анимации из кода существует метод startAnimation()
+        view.startAnimation(
+            AnimationUtils.loadAnimation(this, R.anim.animation)
+                .apply {
+                    // Для отслеживания процесса анимации существует метод
+                    // setAnimationListener()
+                    setAnimationListener(object : Animation.AnimationListener {
+                        override fun onAnimationStart(p0: Animation?) {
+                            showToast(R.string.animation_start)
+                        }
+                        override fun onAnimationEnd(p0: Animation?) {
+                            showToast(R.string.animation_stop)
+                        }
+                        override fun onAnimationRepeat(p0: Animation?) {
+                            showToast(R.string.animation_repeat)
+                        }
+                    })
+                }
+        )
     }
 }

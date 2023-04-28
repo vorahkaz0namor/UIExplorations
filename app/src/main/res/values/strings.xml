@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">UI-experimentation</string>
-    <string name="lets_rock_first">First!</string>
-    <string name="lets_rock_second">Second!</string>
+    <string name="lets_rock_first">Sequentially</string>
+    <string name="lets_rock_second">Concurrently</string>
     <string name="animation_start">Animation was started</string>
     <string name="animation_stop">Animation was stopped</string>
     <string name="animation_repeat">Animation was repeated</string>
+    <string name="concurrently_filling" translatable="false">Concurrently</string>
+    <string name="sequentially_filling" translatable="false">Sequentially</string>
 </resources>

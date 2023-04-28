@@ -10,5 +10,9 @@
         <attr name="thirdColor" format="color|reference"/>
         <attr name="fourthColor" format="color|reference"/>
         <attr name="textColor" format="color|reference"/>
+        <attr name="fillingType" format="enum|reference">
+            <enum name="concurrently" value="0"/>
+            <enum name="sequentially" value="1"/>
+        </attr>
     </declare-styleable>
 </resources>

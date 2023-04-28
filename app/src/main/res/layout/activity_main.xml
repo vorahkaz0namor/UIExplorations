@@ -29,6 +29,7 @@
     <com.example.uiexplorations.ui.StatsView
         android:id="@+id/firstRadialFiller"
         style="@style/Widget.AppTheme.StatsView"
+        app:fillingType="sequentially"
         app:layout_constraintTop_toBottomOf="@id/firstActionButton"
         app:layout_constraintBottom_toTopOf="@id/secondRadialFiller"
         app:layout_constraintStart_toStartOf="parent"
@@ -38,6 +39,7 @@
     <com.example.uiexplorations.ui.StatsView
         android:id="@+id/secondRadialFiller"
         style="@style/Widget.AppTheme.StatsView"
+        app:fillingType="concurrently"
         app:layout_constraintTop_toBottomOf="@id/firstRadialFiller"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

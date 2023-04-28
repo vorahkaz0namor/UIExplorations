@@ -11,6 +11,7 @@ import android.view.animation.LinearInterpolator
 import androidx.core.content.withStyledAttributes
 import com.example.uiexplorations.R
 import com.example.uiexplorations.dto.Arc
+import com.example.uiexplorations.dto.FillingTypeChooser
 import com.example.uiexplorations.dto.Percent
 import com.example.uiexplorations.util.AndroidUtils
 import kotlin.math.min
@@ -24,12 +25,7 @@ class StatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
     // Стиль по умолчанию (ресурса-?)
     defStyleRes: Int = 0
-) : View(
-    context,
-    attributeSet,
-    defStyleAttr,
-    defStyleRes
-) {
+) : View(context, attributeSet, defStyleAttr, defStyleRes) {
     // Центр окружности (индикатора)
     private var center = PointF()
         set(value) {
@@ -63,10 +59,13 @@ class StatsView @JvmOverloads constructor(
     private val sum: Float
         get() =
             if (listData.isNotEmpty())
-                (progress / listData.size) *
-                        listData.map {
-                            (it / listData.max()) * 100 / listData.size
-                        }
+                (progress / if (circularProgress.chosenFillingType == FillingTypeChooser.SEQUENTIALLY)
+                                listData.size
+                            else
+                                1
+                ) * listData.map {
+                        (it / listData.max()) * 100 / listData.size
+                    }
                             .sum()
             else
                 percent.percent.toFloat()
@@ -108,7 +107,14 @@ class StatsView @JvmOverloads constructor(
 
     private fun update() {
         animators = animators.plus(
-            ObjectAnimator.ofFloat(0F, listData.size.toFloat()).apply {
+            ObjectAnimator.ofFloat(
+                0F,
+                ( if (circularProgress.chosenFillingType == FillingTypeChooser.SEQUENTIALLY)
+                      listData.size
+                  else
+                      1
+                ).toFloat()
+            ).apply {
                 addUpdateListener { anim ->
                     (anim.animatedValue as Float).let {
                         progress = it
@@ -138,7 +144,7 @@ class StatsView @JvmOverloads constructor(
                     }
                 }
             )
-            duration = 3000
+            duration = 5000
             interpolator = LinearInterpolator()
             animators.map(::play)
         }
@@ -174,6 +180,13 @@ private class CircularProgress @JvmOverloads constructor(
             field = value
             computeArcs()
         }
+    private var _fillingType = 0
+    private val fillingType =
+        mapOf(
+            0 to FillingTypeChooser.CONCURRENTLY,
+            1 to FillingTypeChooser.SEQUENTIALLY
+        )
+    var chosenFillingType: FillingTypeChooser
     var listData: List<Float> = emptyList()
         set(value) {
             field = value
@@ -194,7 +207,9 @@ private class CircularProgress @JvmOverloads constructor(
                 getColor(R.styleable.StatsView_thirdColor, randomColor()),
                 getColor(R.styleable.StatsView_fourthColor, randomColor())
             )
+            _fillingType = getInteger(R.styleable.StatsView_fillingType, 0)
         }
+        chosenFillingType = fillingType.getOrDefault(_fillingType, FillingTypeChooser.CONCURRENTLY)
         // Создание кисти
         arcPaint = Paint(Paint.ANTI_ALIAS_FLAG)
             .apply {
@@ -223,13 +238,17 @@ private class CircularProgress @JvmOverloads constructor(
         data.forEachIndexed { index, datum ->
             // Угол поворота (начертания дуги)
             val sweepAngle = (
-                    if (listData.isNotEmpty())
-                        when {
-                            progress >= index &&
-                            progress < 1 + index -> progress - index
-                            progress >= 1 + index -> 1F
-                            else -> 0F
-                        }
+                    if (listData.isNotEmpty()) {
+                        if (chosenFillingType == FillingTypeChooser.SEQUENTIALLY)
+                            when {
+                                progress >= index &&
+                                progress < 1 + index -> progress - index
+                                progress >= 1 + index -> 1F
+                                else -> 0F
+                            }
+                        else
+                            progress
+                    }
                     else
                         1F
                     ) * sector * datum / data.max()

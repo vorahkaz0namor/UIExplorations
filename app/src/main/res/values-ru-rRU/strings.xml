@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Эксперименты с UI</string>
-    <string name="lets_rock_first">Первый!</string>
-    <string name="lets_rock_second">Второй!</string>
+    <string name="lets_rock_first">Последовательно</string>
+    <string name="lets_rock_second">Параллельно</string>
     <string name="animation_start">Анимация началась</string>
     <string name="animation_stop">Анимация закончилась</string>
     <string name="animation_repeat">Анимация повторилась</string>
