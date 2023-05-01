@@ -27,25 +27,51 @@ class StatsView @JvmOverloads constructor(
     // Стиль по умолчанию (ресурса-?)
     defStyleRes: Int = 0
 ) : View(context, attributeSet, defStyleAttr, defStyleRes) {
+    // Радиус индикатора прогресса
+    private var radius = 0F
     // Центр окружности (индикатора)
     private var center = PointF()
-        set(value) {
-            field = value
-            circularProgress.center = value
-        }
+    private var oval = RectF()
+    // Ширина линии
+    private var lineWidth = AndroidUtils.dp(context = context, dp = 12)
+    private val randomColor = { Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt()) }
+    private var colors = emptyList<Int>()
+    private val emptyColor = 0xECECECEC.toInt()
+    private var arcPaint: Paint
+    private var arcs = emptyList<Arc>()
     // Для положения текста по оси Y придется ввести поправочный коэффициент
     private var yAxisTextCorrection = 0F
     private var textSize = AndroidUtils.dp(context = context, dp = 20)
     private var textColor = 0xFF000000.toInt()
     private val textPaint: Paint
-    private val circularProgress =
-        CircularProgress(context, attributeSet, defStyleAttr, defStyleRes)
+    private var _fillingType = 0
+    private val fillingType =
+        mapOf(
+            0 to FillingTypeChooser.CONCURRENTLY,
+            1 to FillingTypeChooser.SEQUENTIALLY
+        )
+    var chosenFillingType: FillingTypeChooser
+    private var _directionType = 0
+    private val directionType =
+        mapOf(
+            0 to DirectionTypeChooser.UNIDIRECTIONAL,
+            1 to DirectionTypeChooser.BIDIRECTIONAL
+        )
+    var chosenDirectionType: DirectionTypeChooser
     private var progress = 0F
+        set(value) {
+            field = value
+            computeArcs()
+        }
+    private var angleShift = 0F
+        set(value) {
+            field = value
+            computeArcs()
+        }
     private var animators: List<Animator> = emptyList()
     var listData: List<Float> = emptyList()
         set(value) {
             field = value
-            circularProgress.listData = value
             update()
         }
     var percent: Percent = Percent(0)
@@ -56,13 +82,13 @@ class StatsView @JvmOverloads constructor(
                 else -> value
             }
             field = setValue
-            circularProgress.percent = value
-            invalidate()
+            computeArcs()
+//            invalidate()
         }
     private val sum: Float
         get() =
             if (listData.isNotEmpty())
-                (progress / if (circularProgress.chosenFillingType == FillingTypeChooser.SEQUENTIALLY)
+                (progress / if (chosenFillingType == FillingTypeChooser.SEQUENTIALLY)
                                 listData.size
                             else
                                 1
@@ -82,143 +108,6 @@ class StatsView @JvmOverloads constructor(
                 /* defValue = */ textSize
             )
             textColor = getColor(R.styleable.StatsView_textColor, textColor)
-        }
-        textPaint = Paint(Paint.ANTI_ALIAS_FLAG /*Флаг сглаживания*/)
-            .apply {
-                textSize = this@StatsView.textSize
-                color = this@StatsView.textColor
-                style = Paint.Style.FILL
-                textAlign = Paint.Align.CENTER
-            }
-    }
-
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        center = PointF(w / 2F, h / 2F)
-        yAxisTextCorrection = center.y + textPaint.textSize / 4
-        circularProgress.fromSizeChanged(w, h)
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        circularProgress.draw(canvas)
-        canvas.drawText(
-            /* text = */ totalPercent,
-            /* x = */ center.x,
-            /* y = */ yAxisTextCorrection,
-            /* paint = */ textPaint
-        )
-    }
-
-    private fun update() {
-        animators = animators.plus(
-            ObjectAnimator.ofFloat(
-                0F,
-                ( if (circularProgress.chosenFillingType == FillingTypeChooser.SEQUENTIALLY)
-                      listData.size
-                  else
-                      1
-                ).toFloat()
-            ).apply {
-                addUpdateListener { anim ->
-                    (anim.animatedValue as Float).let {
-                        progress = it
-                        circularProgress.progress = it
-                    }
-                    invalidate()
-                }
-            }
-        )
-        // Вращение отключается при двунаправленном заполнении, чтобы было видно,
-        // что заполнение происходит именно в двух направлениях, поскольку при
-        // вращении создается иллюзия, что заполение однонаправленное
-        if (circularProgress.chosenDirectionType == DirectionTypeChooser.UNIDIRECTIONAL)
-            animators = animators.plus(
-                ObjectAnimator.ofFloat(circularProgress, ROTATION, 0F, 360F).apply {
-                    addUpdateListener {
-                        circularProgress.angleShift = it.animatedValue as Float
-                        invalidate()
-                    }
-                }
-            )
-        AnimatorSet().apply {
-            addListener(
-                object : DefaultAnimatorListener() {
-                    override fun onAnimationCancel(p0: Animator) {
-                        animators.map {
-                            it.removeAllListeners()
-                            it.cancel()
-                        }
-                        animators = emptyList()
-                    }
-                }
-            )
-            duration =
-                if (circularProgress.chosenDirectionType == DirectionTypeChooser.BIDIRECTIONAL &&
-                    circularProgress.chosenFillingType == FillingTypeChooser.CONCURRENTLY)
-                    2000
-                else
-                    3000
-            interpolator = LinearInterpolator()
-            animators.map(::play)
-        }
-            .start()
-    }
-}
-
-private class CircularProgress @JvmOverloads constructor(
-    context: Context,
-    attributeSet: AttributeSet? = null,
-    defStyleAttr: Int = 0,
-    defStyleRes: Int = 0
-): View(context, attributeSet, defStyleAttr, defStyleRes) {
-    // Радиус индикатора прогресса
-    private var radius = 0F
-    // Центр окружности (индикатора)
-    var center = PointF()
-    private var oval = RectF()
-    // Ширина линии
-    private var lineWidth = AndroidUtils.dp(context = context, dp = 12)
-    private val randomColor = { Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt()) }
-    private var colors = emptyList<Int>()
-    private val emptyColor = 0xECECECEC.toInt()
-    private var arcPaint: Paint
-    private var arcs = emptyList<Arc>()
-    var progress = 0F
-        set(value) {
-            field = value
-            computeArcs()
-        }
-    var angleShift = 0F
-        set(value) {
-            field = value
-            computeArcs()
-        }
-    private var _fillingType = 0
-    private val fillingType =
-        mapOf(
-            0 to FillingTypeChooser.CONCURRENTLY,
-            1 to FillingTypeChooser.SEQUENTIALLY
-        )
-    var chosenFillingType: FillingTypeChooser
-    private var _directionType = 0
-    private val directionType =
-        mapOf(
-            0 to DirectionTypeChooser.UNIDIRECTIONAL,
-            1 to DirectionTypeChooser.BIDIRECTIONAL
-        )
-    var chosenDirectionType: DirectionTypeChooser
-    var listData: List<Float> = emptyList()
-        set(value) {
-            field = value
-            computeArcs()
-        }
-    var percent: Percent = Percent(0)
-        set(value) {
-            field = value
-            computeArcs()
-        }
-
-    init {
-        context.withStyledAttributes(attributeSet, R.styleable.StatsView) {
             lineWidth = getDimension(R.styleable.StatsView_lineWidth, lineWidth)
             colors = listOf(
                 getColor(R.styleable.StatsView_firstColor, randomColor()),
@@ -229,8 +118,13 @@ private class CircularProgress @JvmOverloads constructor(
             _fillingType = getInteger(R.styleable.StatsView_fillingType, 0)
             _directionType = getInteger(R.styleable.StatsView_directionType, 0)
         }
-        chosenFillingType = fillingType.getOrDefault(_fillingType, FillingTypeChooser.CONCURRENTLY)
-        chosenDirectionType = directionType.getOrDefault(_directionType, DirectionTypeChooser.UNIDIRECTIONAL)
+        textPaint = Paint(Paint.ANTI_ALIAS_FLAG /*Флаг сглаживания*/)
+            .apply {
+                textSize = this@StatsView.textSize
+                color = this@StatsView.textColor
+                style = Paint.Style.FILL
+                textAlign = Paint.Align.CENTER
+            }
         // Создание кисти
         arcPaint = Paint(Paint.ANTI_ALIAS_FLAG)
             .apply {
@@ -243,6 +137,24 @@ private class CircularProgress @JvmOverloads constructor(
                 strokeJoin = Paint.Join.ROUND
                 strokeCap = Paint.Cap.ROUND
             }
+        chosenFillingType = fillingType.getOrDefault(_fillingType, FillingTypeChooser.CONCURRENTLY)
+        chosenDirectionType = directionType.getOrDefault(_directionType, DirectionTypeChooser.UNIDIRECTIONAL)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        center = PointF(w / 2F, h / 2F)
+        yAxisTextCorrection = center.y + textPaint.textSize / 4
+        // Добавим отступ от краев окружности, чтобы она смогла уместиться
+        // во время отрисовки
+        radius = (min(w, h) - lineWidth) / 2F
+        // Чтобы использовать область отрисовки, необходимо создать
+        // прямоугольник типа RectF
+        oval = RectF(
+            /* left = */ center.x - radius,
+            /* top = */ center.y - radius,
+            /* right = */ center.x + radius,
+            /* bottom = */ center.y + radius
+        )
     }
 
     private fun computeArcs() {
@@ -272,7 +184,7 @@ private class CircularProgress @JvmOverloads constructor(
                         if (chosenFillingType == FillingTypeChooser.SEQUENTIALLY)
                             when {
                                 progress >= index &&
-                                progress < 1 + index -> progress - index
+                                        progress < 1 + index -> progress - index
                                 progress >= 1 + index -> 1F
                                 else -> 0F
                             }
@@ -306,18 +218,57 @@ private class CircularProgress @JvmOverloads constructor(
         invalidate()
     }
 
-    fun fromSizeChanged(w: Int, h: Int) {
-        // Добавим отступ от краев окружности, чтобы она смогла уместиться
-        // во время отрисовки
-        radius = (min(w, h) - lineWidth) / 2F
-        // Чтобы использовать область отрисовки, необходимо создать
-        // прямоугольник типа RectF
-        oval = RectF(
-            /* left = */ center.x - radius,
-            /* top = */ center.y - radius,
-            /* right = */ center.x + radius,
-            /* bottom = */ center.y + radius
+    private fun update() {
+        computeArcs()
+        animators = animators.plus(
+            ObjectAnimator.ofFloat(
+                0F,
+                ( if (chosenFillingType == FillingTypeChooser.SEQUENTIALLY)
+                      listData.size
+                  else
+                      1
+                ).toFloat()
+            ).apply {
+                addUpdateListener { anim ->
+                    progress = anim.animatedValue as Float
+                    invalidate()
+                }
+            }
         )
+        // Вращение отключается при двунаправленном заполнении, чтобы было видно,
+        // что заполнение происходит именно в двух направлениях, поскольку при
+        // вращении создается иллюзия, что заполение однонаправленное
+        if (chosenDirectionType == DirectionTypeChooser.UNIDIRECTIONAL)
+            animators = animators.plus(
+                ObjectAnimator.ofFloat(0F, 360F).apply {
+                    addUpdateListener {
+                        angleShift = it.animatedValue as Float
+                        invalidate()
+                    }
+                }
+            )
+        AnimatorSet().apply {
+            addListener(
+                object : DefaultAnimatorListener() {
+                    override fun onAnimationCancel(p0: Animator) {
+                        animators.map {
+                            it.removeAllListeners()
+                            it.cancel()
+                        }
+                        animators = emptyList()
+                    }
+                }
+            )
+            duration =
+                if (chosenDirectionType == DirectionTypeChooser.BIDIRECTIONAL &&
+                    chosenFillingType == FillingTypeChooser.CONCURRENTLY)
+                    2000
+                else
+                    3000
+            interpolator = LinearInterpolator()
+            animators.map(::play)
+        }
+            .start()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -328,6 +279,7 @@ private class CircularProgress @JvmOverloads constructor(
                 drawStartPoint(canvas)
             }
         }
+        drawText(canvas)
     }
 
     private fun drawBackgroundCircle(canvas: Canvas) {
@@ -367,6 +319,15 @@ private class CircularProgress @JvmOverloads constructor(
             arcPaint.apply {
                 color = arcs.first().color
             }
+        )
+    }
+
+    private fun drawText(canvas: Canvas) {
+        canvas.drawText(
+            /* text = */ totalPercent,
+            /* x = */ center.x,
+            /* y = */ yAxisTextCorrection,
+            /* paint = */ textPaint
         )
     }
 }
