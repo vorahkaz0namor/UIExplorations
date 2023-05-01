@@ -14,6 +14,7 @@
         <item name="android:layout_height">@dimen/stats_view_size</item>
         <item name="textSize">@dimen/static_text</item>
         <item name="lineWidth">@dimen/indent</item>
+        <item name="directionType">bidirectional</item>
         <item name="firstColor">@color/first_color_stats_view</item>
         <item name="secondColor">@color/second_color_stats_view</item>
         <item name="thirdColor">@color/third_color_stats_view</item>

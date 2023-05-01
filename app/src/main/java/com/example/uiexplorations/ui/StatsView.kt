@@ -11,6 +11,7 @@ import android.view.animation.LinearInterpolator
 import androidx.core.content.withStyledAttributes
 import com.example.uiexplorations.R
 import com.example.uiexplorations.dto.Arc
+import com.example.uiexplorations.dto.DirectionTypeChooser
 import com.example.uiexplorations.dto.FillingTypeChooser
 import com.example.uiexplorations.dto.Percent
 import com.example.uiexplorations.util.AndroidUtils
@@ -32,6 +33,8 @@ class StatsView @JvmOverloads constructor(
             field = value
             circularProgress.center = value
         }
+    // Для положения текста по оси Y придется ввести поправочный коэффициент
+    private var yAxisTextCorrection = 0F
     private var textSize = AndroidUtils.dp(context = context, dp = 20)
     private var textColor = 0xFF000000.toInt()
     private val textPaint: Paint
@@ -91,6 +94,7 @@ class StatsView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         center = PointF(w / 2F, h / 2F)
+        yAxisTextCorrection = center.y + textPaint.textSize / 4
         circularProgress.fromSizeChanged(w, h)
     }
 
@@ -99,8 +103,7 @@ class StatsView @JvmOverloads constructor(
         canvas.drawText(
             /* text = */ totalPercent,
             /* x = */ center.x,
-            // Для положения текста по оси Y придется ввести поправочный коэффициент
-            /* y = */ center.y + textPaint.textSize / 4,
+            /* y = */ yAxisTextCorrection,
             /* paint = */ textPaint
         )
     }
@@ -124,7 +127,11 @@ class StatsView @JvmOverloads constructor(
                 }
             }
         )
-            .plus(
+        // Вращение отключается при двунаправленном заполнении, чтобы было видно,
+        // что заполнение происходит именно в двух направлениях, поскольку при
+        // вращении создается иллюзия, что заполение однонаправленное
+        if (circularProgress.chosenDirectionType == DirectionTypeChooser.UNIDIRECTIONAL)
+            animators = animators.plus(
                 ObjectAnimator.ofFloat(circularProgress, ROTATION, 0F, 360F).apply {
                     addUpdateListener {
                         circularProgress.angleShift = it.animatedValue as Float
@@ -144,7 +151,12 @@ class StatsView @JvmOverloads constructor(
                     }
                 }
             )
-            duration = 5000
+            duration =
+                if (circularProgress.chosenDirectionType == DirectionTypeChooser.BIDIRECTIONAL &&
+                    circularProgress.chosenFillingType == FillingTypeChooser.CONCURRENTLY)
+                    2000
+                else
+                    3000
             interpolator = LinearInterpolator()
             animators.map(::play)
         }
@@ -187,6 +199,13 @@ private class CircularProgress @JvmOverloads constructor(
             1 to FillingTypeChooser.SEQUENTIALLY
         )
     var chosenFillingType: FillingTypeChooser
+    private var _directionType = 0
+    private val directionType =
+        mapOf(
+            0 to DirectionTypeChooser.UNIDIRECTIONAL,
+            1 to DirectionTypeChooser.BIDIRECTIONAL
+        )
+    var chosenDirectionType: DirectionTypeChooser
     var listData: List<Float> = emptyList()
         set(value) {
             field = value
@@ -208,8 +227,10 @@ private class CircularProgress @JvmOverloads constructor(
                 getColor(R.styleable.StatsView_fourthColor, randomColor())
             )
             _fillingType = getInteger(R.styleable.StatsView_fillingType, 0)
+            _directionType = getInteger(R.styleable.StatsView_directionType, 0)
         }
         chosenFillingType = fillingType.getOrDefault(_fillingType, FillingTypeChooser.CONCURRENTLY)
+        chosenDirectionType = directionType.getOrDefault(_directionType, DirectionTypeChooser.UNIDIRECTIONAL)
         // Создание кисти
         arcPaint = Paint(Paint.ANTI_ALIAS_FLAG)
             .apply {
@@ -232,10 +253,19 @@ private class CircularProgress @JvmOverloads constructor(
             else -> return
         }
         // Стартовый угол положения кисти
-        var startAngle = -90F + angleShift
+        var startAngle = -90F +
+                if (chosenDirectionType == DirectionTypeChooser.UNIDIRECTIONAL)
+                    angleShift
+                else
+                    0F
         // Сектор, выделяемый для одного элемента
         val sector = 360F / data.size
         data.forEachIndexed { index, datum ->
+            var staticSweepAngle = sector * datum / data.max()
+            if (chosenDirectionType == DirectionTypeChooser.BIDIRECTIONAL) {
+                staticSweepAngle /= 2
+                startAngle += staticSweepAngle
+            }
             // Угол поворота (начертания дуги)
             val sweepAngle = (
                     if (listData.isNotEmpty()) {
@@ -251,20 +281,27 @@ private class CircularProgress @JvmOverloads constructor(
                     }
                     else
                         1F
-                    ) * sector * datum / data.max()
+                    ) * staticSweepAngle
             // Для каждого элемента задается свой цвет.
             // При этом, если отсутствует цвет для элемента
             // из списка data, то цвет сгенерируется
             // по функции randomColor()
             val color = colors.getOrElse(index) { randomColor() }
-            arcs = arcs
-                .plus(Arc(
+            arcs = arcs.plus(Arc(
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
+                color = color
+            ))
+            if (chosenDirectionType == DirectionTypeChooser.BIDIRECTIONAL)
+                arcs = arcs.plus(Arc(
                     startAngle = startAngle,
-                    sweepAngle = sweepAngle,
+                    sweepAngle = -sweepAngle,
                     color = color
                 ))
             // Добавим отступ к стартовому углу
             startAngle += sector
+            if (chosenDirectionType == DirectionTypeChooser.BIDIRECTIONAL)
+                startAngle -= staticSweepAngle
         }
         invalidate()
     }
@@ -319,7 +356,12 @@ private class CircularProgress @JvmOverloads constructor(
     private fun drawStartPoint(canvas: Canvas) {
         canvas.drawArc(
             oval,
-            arcs.first().startAngle,
+            arcs.first().let {
+                if (chosenDirectionType == DirectionTypeChooser.BIDIRECTIONAL)
+                    it.startAngle - it.sweepAngle
+                else
+                    it.startAngle
+            },
             0.1F,
             false,
             arcPaint.apply {
