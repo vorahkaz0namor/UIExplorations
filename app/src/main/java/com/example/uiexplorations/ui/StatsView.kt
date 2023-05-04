@@ -83,7 +83,6 @@ class StatsView @JvmOverloads constructor(
             }
             field = setValue
             computeArcs()
-//            invalidate()
         }
     private val sum: Float
         get() =
@@ -103,10 +102,6 @@ class StatsView @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attributeSet, R.styleable.StatsView) {
-            textSize = getDimension(
-                /* index = */ R.styleable.StatsView_textSize,
-                /* defValue = */ textSize
-            )
             textColor = getColor(R.styleable.StatsView_textColor, textColor)
             lineWidth = getDimension(R.styleable.StatsView_lineWidth, lineWidth)
             colors = listOf(
@@ -147,6 +142,9 @@ class StatsView @JvmOverloads constructor(
         // Добавим отступ от краев окружности, чтобы она смогла уместиться
         // во время отрисовки
         radius = (min(w, h) - lineWidth) / 2F
+        // Установка пропорциональной зависимости размера текста от размера
+        // custom view
+        textPaint.textSize = 2 * radius / 6
         // Чтобы использовать область отрисовки, необходимо создать
         // прямоугольник типа RectF
         oval = RectF(

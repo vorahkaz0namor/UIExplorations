@@ -12,7 +12,7 @@
     <style name="Widget.AppTheme.StatsView" parent="Theme.UIExplorations">
         <item name="android:layout_width">@dimen/stats_view_size</item>
         <item name="android:layout_height">@dimen/stats_view_size</item>
-        <item name="textSize">@dimen/static_text</item>
+<!--        <item name="textSize">@dimen/static_text</item>-->
         <item name="lineWidth">@dimen/indent</item>
         <item name="directionType">bidirectional</item>
         <item name="firstColor">@color/first_color_stats_view</item>

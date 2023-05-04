@@ -1,10 +1,18 @@
 package com.example.uiexplorations.activity
 
+import android.animation.LayoutTransition
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.view.animation.BounceInterpolator
+import android.view.animation.LinearInterpolator
 import android.widget.Toast
+import androidx.core.view.isNotEmpty
+import androidx.transition.AutoTransition
+import androidx.transition.Scene
+import androidx.transition.TransitionManager
 import com.example.uiexplorations.R
 import com.example.uiexplorations.dto.Percent
 import com.example.uiexplorations.ui.StatsView
@@ -14,6 +22,56 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        partOne()
+        partTwo()
+        partThree()
+    }
+
+    private fun partThree() {
+        val groot = findViewById<ViewGroup>(R.id.moreOneRoot)
+        findViewById<MaterialButton>(R.id.bounceButton)
+            .setOnClickListener {
+                groot.layoutTransition = LayoutTransition().apply {
+                    if (groot.isNotEmpty()) {
+                        setDuration(1500)
+                        setInterpolator(LayoutTransition.CHANGE_APPEARING, BounceInterpolator())
+                    }
+                    else {
+                        setDuration(500)
+                        setInterpolator(LayoutTransition.CHANGING, LinearInterpolator())
+                    }
+                }
+                val statsView = layoutInflater.inflate(
+                    R.layout.stats_view,
+                    groot,
+                    false
+                )
+                groot.addView(statsView, 0)
+        }
+    }
+
+    private fun partTwo() {
+        var goBack = true
+        findViewById<MaterialButton>(R.id.transitionButton).setOnClickListener {
+            TransitionManager.go(
+                Scene.getSceneForLayout(
+                    findViewById(R.id.transitionRoot),
+                    if (goBack)
+                        R.layout.end_scene
+                    else
+                        R.layout.start_scene
+                    ,
+                    this@MainActivity
+                ),
+                AutoTransition().apply {
+                    duration = 1500
+                }
+            )
+            goBack = !goBack
+        }
+    }
+
+    private fun partOne() {
         val letsFirstButton = findViewById<MaterialButton>(R.id.firstActionButton)
         val letsSecondButton = findViewById<MaterialButton>(R.id.secondActionButton)
         val firstStatsView = findViewById<StatsView>(R.id.firstRadialFiller)
@@ -30,14 +88,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         letsSecondButton.setOnClickListener {
             secondStatsView.listData = data
         }
-    }
-
-    private fun showToast(stringResId: Int) {
-        Toast.makeText(
-            this,
-            getString(stringResId),
-            Toast.LENGTH_SHORT
-        ).show()
     }
 
     private fun lectureExample(view: StatsView) {
@@ -61,5 +111,13 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     })
                 }
         )
+    }
+
+    private fun showToast(stringResId: Int) {
+        Toast.makeText(
+            this,
+            getString(stringResId),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }

@@ -6,6 +6,34 @@
     android:layout_height="match_parent"
     tools:context=".activity.MainActivity">
 
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/partOne"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:constraint_referenced_ids="
+            firstActionButton, secondActionButton,
+            firstRadialFiller, secondRadialFiller
+        "/>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/partTwo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        app:constraint_referenced_ids="
+            transitionRoot, transitionButton
+        "/>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/partThree"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:constraint_referenced_ids="
+            siblingScroll, bounceButton
+        "/>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/firstActionButton"
         android:layout_width="wrap_content"
@@ -45,5 +73,54 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         />
+
+    <FrameLayout
+        android:id="@+id/transitionRoot"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <include layout="@layout/start_scene" />
+
+    </FrameLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/transitionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/transition_action"
+        style="@style/Widget.AppTheme.UIExplorationsOutlinedButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <ScrollView
+        android:id="@+id/siblingScroll"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/zero_dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bounceButton"
+        android:contentDescription="@string/appear_of_statsviews"
+        >
+
+        <LinearLayout
+            android:id="@+id/moreOneRoot"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/bounceButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/bounce_action"
+        style="@style/Widget.AppTheme.UIExplorationsOutlinedButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

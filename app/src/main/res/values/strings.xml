@@ -5,4 +5,7 @@
     <string name="animation_start">Animation was started</string>
     <string name="animation_stop">Animation was stopped</string>
     <string name="animation_repeat">Animation was repeated</string>
+    <string name="transition_action">Transition animation</string>
+    <string name="bounce_action">Bounce animation</string>
+    <string name="appear_of_statsviews">Here will be appear StatsViews</string>
 </resources>
