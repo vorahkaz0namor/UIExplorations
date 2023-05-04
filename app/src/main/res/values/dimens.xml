@@ -3,6 +3,7 @@
     <dimen name="zero_dp">0dp</dimen>
     <dimen name="stroke_width">2dp</dimen>
     <dimen name="stats_view_size">160dp</dimen>
+    <dimen name="before_transition">320dp</dimen>
     <dimen name="indent">14dp</dimen>
     <dimen name="static_text">20sp</dimen>
 </resources>

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Эксперименты с UI</string>
-    <string name="lets_rock_first">Первый!</string>
-    <string name="lets_rock_second">Второй!</string>
+    <string name="lets_rock_first">Последовательно</string>
+    <string name="lets_rock_second">Параллельно</string>
     <string name="animation_start">Анимация началась</string>
     <string name="animation_stop">Анимация закончилась</string>
     <string name="animation_repeat">Анимация повторилась</string>
+    <string name="transition_action">Анимация перехода</string>
+    <string name="appear_of_statsviews">Здесь будут появляться StatsViews</string>
+    <string name="bounce_action">Анимация прыжка</string>
 </resources>
