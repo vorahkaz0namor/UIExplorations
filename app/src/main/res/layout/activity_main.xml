@@ -10,7 +10,7 @@
         android:id="@+id/partOne"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
+        android:visibility="visible"
         app:constraint_referenced_ids="
             firstActionButton, secondActionButton,
             firstRadialFiller, secondRadialFiller
@@ -20,7 +20,7 @@
         android:id="@+id/partTwo"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible"
+        android:visibility="gone"
         app:constraint_referenced_ids="
             transitionRoot, transitionButton
         "/>
