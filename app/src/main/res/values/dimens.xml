@@ -2,8 +2,12 @@
 <resources>
     <dimen name="zero_dp">0dp</dimen>
     <dimen name="stroke_width">2dp</dimen>
-    <dimen name="stats_view_size">160dp</dimen>
-    <dimen name="before_transition">320dp</dimen>
     <dimen name="indent">14dp</dimen>
+    <dimen name="tint_size">18dp</dimen>
     <dimen name="static_text">20sp</dimen>
+    <dimen name="chooser_start_indent">28dp</dimen>
+    <dimen name="chooser_top_indent">40dp</dimen>
+    <dimen name="filling_section_height">138dp</dimen>
+    <dimen name="filling_section_width">240dp</dimen>
+    <dimen name="stats_view_size">320dp</dimen>
 </resources>
