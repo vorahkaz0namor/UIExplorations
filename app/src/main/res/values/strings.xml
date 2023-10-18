@@ -1,11 +1,10 @@
 <resources>
     <string name="app_name">UI-experimentation</string>
-    <string name="lets_rock_first">Sequentially</string>
-    <string name="lets_rock_second">Concurrently</string>
-    <string name="animation_start">Animation was started</string>
-    <string name="animation_stop">Animation was stopped</string>
-    <string name="animation_repeat">Animation was repeated</string>
-    <string name="transition_action">Transition animation</string>
-    <string name="bounce_action">Bounce animation</string>
-    <string name="appear_of_statsviews">Here will be appear StatsViews</string>
+    <string name="lets_rock">Start animation</string>
+    <string name="rotation">Rotation upon filling</string>
+    <string name="sequential_filling">Sequential</string>
+    <string name="concurrent_filling">Concurrent</string>
+    <string name="unidirectional_filling">Unidirectional</string>
+    <string name="bidirectional_filling">Bidirectional</string>
+    <string name="filling_methods_section">Segments filling methods</string>
 </resources>

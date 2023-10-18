@@ -9,6 +9,8 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
 import androidx.core.content.withStyledAttributes
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.uiexplorations.R
 import com.example.uiexplorations.dto.Arc
 import com.example.uiexplorations.dto.DirectionTypeChooser
@@ -58,6 +60,10 @@ class StatsView @JvmOverloads constructor(
             1 to DirectionTypeChooser.BIDIRECTIONAL
         )
     var chosenDirectionType: DirectionTypeChooser
+    private var shouldRotate = false
+    private var _isOnDraw = MutableLiveData(false)
+    val isOnDraw: LiveData<Boolean>
+        get() = _isOnDraw
     private var progress = 0F
         set(value) {
             field = value
@@ -69,9 +75,11 @@ class StatsView @JvmOverloads constructor(
             computeArcs()
         }
     private var animators: List<Animator> = emptyList()
+    private var rotationAnimator: Animator? = null
     var listData: List<Float> = emptyList()
         set(value) {
             field = value
+            _isOnDraw.value = true
             update()
         }
     var percent: Percent = Percent(0)
@@ -233,21 +241,18 @@ class StatsView @JvmOverloads constructor(
                 }
             }
         )
-        // Вращение отключается при двунаправленном заполнении, чтобы было видно,
-        // что заполнение происходит именно в двух направлениях, поскольку при
-        // вращении создается иллюзия, что заполение однонаправленное
-        if (chosenDirectionType == DirectionTypeChooser.UNIDIRECTIONAL)
-            animators = animators.plus(
-                ObjectAnimator.ofFloat(0F, 360F).apply {
-                    addUpdateListener {
-                        angleShift = it.animatedValue as Float
-                        invalidate()
-                    }
-                }
-            )
+        // При двунаправленном заполении и одновременном вращении
+        // создается иллюзия, что заполение однонаправленное
+        if (shouldRotate)
+            rotationAnimator?.let {
+                animators = animators.plus(it)
+            }
         AnimatorSet().apply {
             addListener(
                 object : DefaultAnimatorListener() {
+                    override fun onAnimationEnd(p0: Animator) {
+                        _isOnDraw.value = false
+                    }
                     override fun onAnimationCancel(p0: Animator) {
                         animators.map {
                             it.removeAllListeners()
@@ -258,8 +263,7 @@ class StatsView @JvmOverloads constructor(
                 }
             )
             duration =
-                if (chosenDirectionType == DirectionTypeChooser.BIDIRECTIONAL &&
-                    chosenFillingType == FillingTypeChooser.CONCURRENTLY)
+                if (chosenFillingType == FillingTypeChooser.CONCURRENTLY)
                     2000
                 else
                     3000
@@ -327,5 +331,39 @@ class StatsView @JvmOverloads constructor(
             /* y = */ yAxisTextCorrection,
             /* paint = */ textPaint
         )
+    }
+
+    private fun assignRotationAnimator() {
+        rotationAnimator =
+            if (shouldRotate)
+                ObjectAnimator.ofFloat(0F, 360F).apply {
+                    addUpdateListener {
+                        angleShift = it.animatedValue as Float
+                        invalidate()
+                    }
+                }
+            else
+                null
+    }
+
+    fun setShouldRotate(isChecked: Boolean) {
+        shouldRotate = isChecked
+        assignRotationAnimator()
+    }
+
+    fun setFillingType(isChecked: Boolean) {
+        chosenFillingType =
+            if (isChecked)
+                FillingTypeChooser.CONCURRENTLY
+            else
+                FillingTypeChooser.SEQUENTIALLY
+    }
+
+    fun setDirectionType(isChecked: Boolean) {
+        chosenDirectionType =
+            if (isChecked)
+                DirectionTypeChooser.UNIDIRECTIONAL
+            else
+                DirectionTypeChooser.BIDIRECTIONAL
     }
 }

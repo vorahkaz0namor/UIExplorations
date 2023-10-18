@@ -12,8 +12,8 @@
     <style name="Widget.AppTheme.StatsView" parent="Theme.UIExplorations">
         <item name="android:layout_width">@dimen/stats_view_size</item>
         <item name="android:layout_height">@dimen/stats_view_size</item>
-<!--        <item name="textSize">@dimen/static_text</item>-->
         <item name="lineWidth">@dimen/indent</item>
+        <item name="fillingType">sequentially</item>
         <item name="directionType">bidirectional</item>
         <item name="firstColor">@color/first_color_stats_view</item>
         <item name="secondColor">@color/second_color_stats_view</item>
@@ -21,5 +21,28 @@
         <item name="fourthColor">@color/fourth_color_stats_view</item>
         <item name="textColor">?attr/colorControlNormal</item>
     </style>
+
+    <style name="Widget.AppTheme.FillingMethodSection" parent="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">@dimen/filling_section_width</item>
+        <item name="android:layout_height">@dimen/filling_section_height</item>
+        <item name="android:padding">@dimen/indent</item>
+        <item name="android:enabled">false</item>
+        <item name="expandedHintEnabled">false</item>
+        <item name="android:hint">@string/filling_methods_section</item>
+    </style>
+
+    <style name="Widget.AppTheme.FillingMethodChooser" parent="Widget.MaterialComponents.Button.TextButton.Icon">
+        <item name="android:textColor">?attr/colorControlNormal</item>
+        <item name="iconPadding">@dimen/indent</item>
+        <item name="android:paddingStart">@dimen/chooser_start_indent</item>
+        <item name="textAllCaps">false</item>
+        <item name="backgroundTint">@color/custom_transparent</item>
+        <item name="android:checkable">true</item>
+        <item name="rippleColor">@color/custom_transparent</item>
+        <item name="iconSize">@dimen/tint_size</item>
+        <item name="iconTint">@color/color_selector</item>
+        <item name="icon">@drawable/icon_selector</item>
+    </style>
+
 
 </resources>
