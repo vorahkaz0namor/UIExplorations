@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         initViews()
+        subscribe()
         setupListeners()
     }
 
@@ -27,9 +28,9 @@ class MainActivity : AppCompatActivity() {
         binding.apply {
             fillingSequence.text = getString(
                 if (fillingSequence.isChecked)
-                    R.string.concurrently_filling
+                    R.string.concurrent_filling
                 else
-                    R.string.sequentially_filling
+                    R.string.sequential_filling
             )
             fillingDirection.text = getString(
                 if (fillingDirection.isChecked)
@@ -40,10 +41,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun subscribe() {
+        binding.apply {
+            radialFiller.isOnDraw.observe(this@MainActivity) {
+                fillingSequence.isClickable = !it
+                fillingDirection.isClickable = !it
+            }
+        }
+    }
+
     private fun setupListeners() {
         binding.apply {
-            fillingSequence.setOnClickListener { initViews() }
-            fillingDirection.setOnClickListener { initViews() }
+            fillingSequence.setOnClickListener {
+                initViews()
+                radialFiller.setFillingType(fillingSequence.isChecked)
+            }
+            fillingDirection.setOnClickListener {
+                initViews()
+                radialFiller.setDirectionType(fillingDirection.isChecked)
+            }
+            checkboxRotation.setOnCheckedChangeListener { _, isChecked ->
+                radialFiller.setShouldRotate(isChecked)
+            }
             actionButton.setOnClickListener {
                 radialFiller.listData = data
             }

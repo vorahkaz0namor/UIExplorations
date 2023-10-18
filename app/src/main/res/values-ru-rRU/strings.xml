@@ -3,8 +3,8 @@
     <string name="app_name">Эксперименты с UI</string>
     <string name="lets_rock">Начать анимацию</string>
     <string name="rotation">Вращение при заполнении</string>
-    <string name="sequentially_filling">Последовательно</string>
-    <string name="concurrently_filling">Одновременно</string>
+    <string name="sequential_filling">Последовательное</string>
+    <string name="concurrent_filling">Одновременное</string>
     <string name="unidirectional_filling">Однонаправленное</string>
     <string name="bidirectional_filling">Двунаправленное</string>
     <string name="filling_methods_section">Способы заполнения сегментов</string>

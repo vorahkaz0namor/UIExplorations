@@ -47,7 +47,7 @@
         android:paddingTop="@dimen/chooser_top_indent"
         app:layout_constraintStart_toStartOf="@id/fillingMethods"
         app:layout_constraintTop_toTopOf="@id/fillingMethods"
-        tools:text="@string/sequentially_filling"
+        tools:text="@string/sequential_filling"
         />
 
     <com.google.android.material.button.MaterialButton
@@ -66,6 +66,7 @@
         android:layout_height="wrap_content"
         android:text="@string/rotation"
         android:textColor="?attr/colorControlNormal"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/fillingMethods"
         app:layout_constraintStart_toStartOf="@id/fillingMethods"
         app:layout_constraintEnd_toEndOf="@id/fillingMethods"

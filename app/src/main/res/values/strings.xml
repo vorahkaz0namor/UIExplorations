@@ -2,8 +2,8 @@
     <string name="app_name">UI-experimentation</string>
     <string name="lets_rock">Start animation</string>
     <string name="rotation">Rotation upon filling</string>
-    <string name="sequentially_filling">Sequentially</string>
-    <string name="concurrently_filling">Concurrently</string>
+    <string name="sequential_filling">Sequential</string>
+    <string name="concurrent_filling">Concurrent</string>
     <string name="unidirectional_filling">Unidirectional</string>
     <string name="bidirectional_filling">Bidirectional</string>
     <string name="filling_methods_section">Segments filling methods</string>
